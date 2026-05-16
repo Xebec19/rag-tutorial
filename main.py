@@ -1,8 +1,11 @@
 from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
 from langchain_qdrant import QdrantVectorStore
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def main():
@@ -18,12 +21,13 @@ def main():
     chunks = text_splitter.split_documents(documents=docs)
 
     # Vector embeddings
-    embedding_model = OpenAIEmbeddings(model="text-embedding-3-large")
+    # embedding_model = OpenAIEmbeddings(model="text-embedding-3-large")
+    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
 
     # Save data in vectordb
     vector_Store = QdrantVectorStore.from_documents(
         documents=chunks,
-        embedding=embedding_model,
+        embedding=embeddings,
         url="http://localhost:6333",
         collection_name="learning_rag",
     )

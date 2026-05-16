@@ -12,3 +12,4 @@ wheels/
 # static files
 /assets
 /scripts
+.env
