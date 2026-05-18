@@ -2,8 +2,8 @@ from pathlib import Path
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_qdrant import QdrantVectorStore
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from dotenv import load_dotenv
+from langchain_huggingface import HuggingFaceEmbeddings
 
 load_dotenv()
 
@@ -22,12 +22,17 @@ def main():
 
     # Vector embeddings
     # embedding_model = OpenAIEmbeddings(model="text-embedding-3-large")
-    embeddings = GoogleGenerativeAIEmbeddings(model="gemini-embedding-001")
+    embeddings = HuggingFaceEmbeddings(
+        model_name="all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"},  # explicitly use CPU
+        encode_kwargs={
+            "normalize_embeddings": True
+        },  # recommended for cosine similarity
+    )
 
-    # Save data in vectordb
-    vector_Store = QdrantVectorStore.from_documents(
+    vector_store = QdrantVectorStore.from_documents(
         documents=chunks,
-        embedding=embeddings,
+        embedding=embeddings,  # ← plug it in directly
         url="http://localhost:6333",
         collection_name="learning_rag",
     )
