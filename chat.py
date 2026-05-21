@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_qdrant import QdrantVectorStore
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_core.prompts import ChatPromptTemplate
 
 load_dotenv()
 
@@ -21,7 +23,7 @@ def main():
     )
 
     # Take user input
-    user_query = input("Ask something")
+    user_query = input("Ask something\t")
 
     search_results = vectordb.similarity_search(query=user_query)
 
@@ -40,6 +42,17 @@ def main():
 
     Context: {context}
     """
+
+    print(SYSTEM_PROMPT)
+
+    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7)
+    prompt = ChatPromptTemplate.from_messages(
+        [("system", SYSTEM_PROMPT), ("human", "{input}")]
+    )
+
+    chain = prompt | llm
+    response = chain.invoke({"input": user_query})
+    print(response.content)
 
 
 if __name__ == "__main__":
