@@ -25,33 +25,40 @@ def main():
     # Take user input
     user_query = input("Ask something\t")
 
-    search_results = vectordb.similarity_search(query=user_query)
+    search_results = vectordb.similarity_search(query=user_query, k=5)
+
+    if not search_results:
+        print("No releant documents found for your query")
+        return
 
     context = "\n\n\n".join(
         [
-            f"Page Content: {result.page_content}\nPage Number: {result.metadata['page_label']}\nFile Location: {result.metadata['source']}"
-            for result in search_results
+            f"Page Content: {r.page_content}\n"
+            f"Page Number: {r.metadata.get('page_label', 'N/A')}\n"
+            f"File: {r.metadata.get('source', 'Unknown')}"
+            for r in search_results
         ]
     )
 
-    SYSTEM_PROMPT = f"""
-    You are a helpful AI Assistant who answers user query based on the available context
-    retrieved from  a PDF file along with page_contents and page number.
-    You should only answer the user based on the following context and navigate the user to
-    open the right page number to know more.
+    SYSTEM_PROMPT = """
+    You are a helpful AI Assistant who answers user queries based on the context below.
+    Only answer from the context and guide the user to the right page number.
 
     Context: {context}
     """
 
-    print(SYSTEM_PROMPT)
-
-    llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=0.7)
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite", temperature=0.2, max_retries=3
+    )
     prompt = ChatPromptTemplate.from_messages(
-        [("system", SYSTEM_PROMPT), ("human", "{input}")]
+        [
+            ("system", SYSTEM_PROMPT),
+            ("human", "{input}"),
+        ]
     )
 
     chain = prompt | llm
-    response = chain.invoke({"input": user_query})
+    response = chain.invoke({"input": user_query, "context": context})
     print(response.content)
 
 

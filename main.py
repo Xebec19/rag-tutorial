@@ -35,6 +35,7 @@ def main():
         embedding=embeddings,  # ← plug it in directly
         url="http://localhost:6333",
         collection_name="learning_rag",
+        force_recreate=True,
     )
 
     print("Indexing of documents done!")
